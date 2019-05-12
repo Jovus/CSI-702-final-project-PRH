@@ -1,0 +1,31 @@
+#!/bin/bash
+#SBATCH -A sc5fp4p
+#SBATCH -J particle-gpu
+#SBATCH -o particle-gpu.stdout
+#SBATCH -n 1
+#SBATCH -p GPU-shared
+#SBATCH --gres=gpu:k80:1
+#SBATCH -t 00:10:00
+
+EXE_DIR=bin
+EXE=particles
+AUTOCORRECT_EXE=src/autocorrect
+VISUALIZER_EXE="scripts/hw2-visualize/animate.py"
+VISUALIZER_CLI="--interval 60 --writer imagemagick --hide"
+OUTPUT_FILE="gpu.txt"
+RUN_MODE=gpu
+CLI_OPTS="-n 4000 -o ${OUTPUT_FILE}"
+
+if [[ -f ./${EXE_DIR}/${EXE} ]]; then
+  # Load modules
+  module load gcc/5.3.0 cuda/9.2 anaconda3/5.2.0
+
+  # Run benchmarks
+  ./${EXE_DIR}/${EXE} ${CLI_OPTS} ${RUN_MODE}
+
+  # Check particle interaction correctness
+  ./${AUTOCORRECT_EXT} -s ${OUTPUT_FILE}
+
+  # Create visualization
+  ./${VISUALIZER_EXE} ${VISUALIZER_CLI} ${OUTPUT_FILE}
+fi
